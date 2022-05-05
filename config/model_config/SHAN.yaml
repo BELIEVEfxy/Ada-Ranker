@@ -1,0 +1,3 @@
+item_embedding_size: 32
+cate_embedding_size: 32
+short_item_length: 2

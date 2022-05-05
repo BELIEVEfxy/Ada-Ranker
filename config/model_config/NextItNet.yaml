@@ -1,0 +1,6 @@
+item_embedding_size: 32
+cate_embedding_size: 32
+kernel_size: 3
+block_num: 5
+dilations: [1,4]
+reg_weight: 1e-5
