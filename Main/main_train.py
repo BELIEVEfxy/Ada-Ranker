@@ -44,7 +44,7 @@ if __name__ == '__main__':
     
     output_path = config['output_path']
     utils.ensure_dir(output_path)
-    result_file = output_path+'/results_xb.tsv'
+    result_file = output_path+'/results_train.tsv'
 
     sep = '\t'
 
