@@ -41,6 +41,7 @@ def process_origin_data():
         (2) cate2idx (cate = Genres)
         (3) item2cate
     """
+    print('\n>> Processing original dataset...')
     # origin_data's shape as ['user_id', 'item_id', 'cate_id', 'timestamp']
     origin_data_file = origin_data_path + dataset_name + '.tsv'
     if not os.path.exists(origin_data_file):
@@ -80,6 +81,7 @@ def get_new_cate2items():
 def merge_category(data):
     # Get cate2items and item2cate
     # Merge categories containing a small number of items (lower than 200) into one category
+    print('\n>> Merging categories...')
     cate2items = {}
     item2cate = {}
 
@@ -144,19 +146,20 @@ def remap(data, item2cate): # remap all ID and sort
 
 
 def filter_remap_sort(origin_data, item2cate):
+    print('\n>> Filtering illegal interactions and remapping ids...')
     data = origin_data.sort_values(by=[USER_ID, TIMESTAMP], ascending=[True, True])
     users = filter_users(data)
     pd_users = pd.DataFrame({USER_ID: users})
     data = pd.merge(data, pd_users, on=USER_ID, how='inner')
 
     data = data.drop_duplicates(subset=[USER_ID, ITEM_ID], keep='last')
-    print('drop_duplicates done!')
+    print('\ndrop_duplicates done!')
     data = data.sort_values(by=[USER_ID, TIMESTAMP], ascending=[True, True])
-    print('sort_values done!')
+    print('\nsort_values done!')
     data = remap(data, item2cate)
-    print('remap done!')
+    print('\nremap done!')
     
-    print(data)
+    # print(data)
     data = data.sort_values(by=[USER_ID, TIMESTAMP], ascending=[True, True])
     data[[USER_ID, ITEM_ID, CATE_ID, TIMESTAMP]].to_csv(processed_data_path + 'user_item_cate_time.tsv', sep='\t', index=False)
 
@@ -164,11 +167,12 @@ def filter_remap_sort(origin_data, item2cate):
 
 
 def add_item_seq(data): # add item sequence
+    print('\n>> Adding item sequences')
     users = set(data[USER_ID].values)
 
     user2itemseq = {user: [] for user in users}
     by_userid_group = data.groupby(USER_ID)[ITEM_ID]
-    for userid, group_frame in tqdm(by_userid_group, desc='Load item_seq'):
+    for userid, group_frame in by_userid_group:
         seq = group_frame.values.tolist()
         user2itemseq[userid] = seq
 
@@ -180,7 +184,7 @@ def add_item_seq(data): # add item sequence
     user_size = user_size.reset_index()
     user_size.columns = [USER_ID, 'size']
     avg_seq_len = user_size['size'].values.mean()
-    print('\n*** avg_seq_len', avg_seq_len) # 143
+    print('\naverage sequence length: ', int(avg_seq_len)) # 143
 
     cumsum_v = [0] + list(user_size['size'].values.cumsum())
 
@@ -188,7 +192,7 @@ def add_item_seq(data): # add item sequence
     all_items = data[ITEM_ID].values
     all_cates = data[CATE_ID].values
 
-    for i in tqdm(range(len(cumsum_v)-1), desc='add_item_seq'):
+    for i in tqdm(range(len(cumsum_v)-1), desc='add item_seq'):
         st_idx = cumsum_v[i]
         ed_idx = cumsum_v[i+1]
         leng = ed_idx - st_idx
