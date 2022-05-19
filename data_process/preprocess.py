@@ -26,12 +26,12 @@ if __name__ == '__main__':
     filepath = origin_data_path + wget.filename_from_url(url)
 
     if not os.path.exists(filepath):
-        print('The original dataset does not exist. Downloading it from ', url)
+        print('\nThe original dataset does not exist. Downloading it from ', url)
         # utils.download_dataset(url, filepath)
         wget.download(url, out=filepath)
     if not os.path.exists(origin_data_path+'/ml-10M100K/'):
         with zipfile.ZipFile(filepath, mode="a") as f:
-            print('Extracting dataset...')
+            print('\n>> Extracting dataset...')
             f.extractall(origin_data_path)
         f.close()
 
