@@ -86,7 +86,7 @@ def distritbuion_mixer_sampling(data, cate2items):
     data[ITEM_SEQ] = data[ITEM_SEQ].apply(lambda x: utils.str2list(x))
     data['neg_items'] = data['neg_items'].apply(lambda x: utils.str2list(x))
 
-    print('sampled_data', data)
+    print('data after sampling\n', data)
     os.remove(tmp_neg_file)
 
     return data
