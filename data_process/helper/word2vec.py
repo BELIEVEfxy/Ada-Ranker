@@ -43,6 +43,7 @@ def emb2str(embedding):
     return str_emb[:-1]
 
 def pretrain_word2vec():
+    print('\n>> Training word2vec...')
     # load data
     infile = processed_data_path + '/user_item_cate_time.tsv'
     outfile_path = processed_data_path
@@ -51,8 +52,8 @@ def pretrain_word2vec():
     user2item2cate2time = pd.read_csv(infile, sep='\t')
 
     corpus, item_num = load_item_seq(user2item2cate2time)
-    print('item_num: ', item_num)
-    print('>> training word2vec...')
+    # print('item_num: ', item_num)
+    
     w2v_model = Word2Vec(corpus, vector_size=PRETRAIN_VECTOR_SIZE, window=10, min_count=3, workers=4)
     w2v_model.save(outfile_path+"word2vec.model")
 
