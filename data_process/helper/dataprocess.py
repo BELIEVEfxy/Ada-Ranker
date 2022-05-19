@@ -49,12 +49,10 @@ def process_origin_data():
 
         item2cate = dataloader.load_item_profile(item_file_path)
         origin_data = dataloader.load_inter_file(item2cate, inter_file_path)
-        print('origin_data\n', origin_data)
         origin_data.to_csv(origin_data_file, sep='\t', index=False)
     else:
         origin_data = pd.read_csv(origin_data_file, sep='\t')
         origin_data[CATE_ID] = origin_data[CATE_ID].apply(lambda x: utils.str2list(x))
-        print('origin_data\n', origin_data)
 
     return origin_data
 
@@ -124,9 +122,9 @@ def filter_users(data): # filter users
     user_size = data.groupby([USER_ID]).size()
     user_size = user_size.reset_index()
     user_size.columns = [USER_ID, 'size']
-    print('#user before filtering', len(user_size))
+    # print('#user before filtering', len(user_size))
     user_list = set(user_size[user_size['size'] > MIN_USER_NUM][USER_ID].values)
-    print('#user after filtering', len(user_list))
+    # print('#user after filtering', len(user_list))
     
     return list(user_list)
 
@@ -157,6 +155,7 @@ def filter_remap_sort(origin_data, item2cate):
     print('sort_values done!')
     data = remap(data, item2cate)
     print('remap done!')
+    
     print(data)
     data = data.sort_values(by=[USER_ID, TIMESTAMP], ascending=[True, True])
     data[[USER_ID, ITEM_ID, CATE_ID, TIMESTAMP]].to_csv(processed_data_path + 'user_item_cate_time.tsv', sep='\t', index=False)
