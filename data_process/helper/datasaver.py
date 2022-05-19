@@ -40,7 +40,7 @@ def save_embedding(data, outfile, sep = ' '):
             fp.write(sep + str(data[i][j]))
         fp.write('\n')
     fp.close()
-    print('write embedding done!\n')
+    # print('write embedding done!\n')
 
 def save_dict(data, outfile='data.tsv', sep = '\t'):
     data = sorted(data.items(), key=lambda x: x[0], reverse=False)
@@ -48,7 +48,7 @@ def save_dict(data, outfile='data.tsv', sep = '\t'):
     for item in data:
         fp.writelines(str(item[0]) + sep + str(item[1]) + '\n')
     fp.close()
-    print('write dict done!\n')
+    # print('write dict done!\n')
 
 def split_train_valid_test(data, name):
     train_data = data[data[STAGE] == 'train'][name]
@@ -58,7 +58,7 @@ def split_train_valid_test(data, name):
     return train_data, valid_data, test_data
 
 def save_data(data):
-    print('saving data...')
+    print('\n>> Saving data...')
     sample_mode = 'distribution-mixer'
     name = [USER_ID, ITEM_ID, CATE_ID, ITEM_SEQ, ITEM_SEQ_LEN, NEG_ITEMS]
 
@@ -76,4 +76,4 @@ def save_data(data):
     save_tsv_obj(test_data, new_outfile_path+'test.tsv', names=name, sep='\t')
     save_pkl_obj(test_data, new_outfile_path+'test.pkl')
 
-    print('save data done!')
+    print('Save data done!')
