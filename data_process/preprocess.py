@@ -21,16 +21,17 @@ import zipfile
 
 if __name__ == '__main__':
     ## download dataset:
-        # download dataset from https://grouplens.org/datasets/movielens/10m/
-        # You can also download ml-10m.zip from the browser and put it into `origin_data_path'
+        # download dataset from 'http://files.grouplens.org/datasets/movielens/ml-100k.zip'
+        # You can also download ml-10m.zip from the browser or https://pan.baidu.com/s/10kyIQvfsU-HvKG-dlEiHag?pwd=hn99 and put it into `origin_data_path'
     filepath = origin_data_path + wget.filename_from_url(url)
 
     if not os.path.exists(filepath):
         print('The original dataset does not exist. Downloading it from ', url)
-        utils.download_with_bar(url, filepath)
+        # utils.download_dataset(url, filepath)
+        wget.download(url, out=filepath)
     if not os.path.exists(origin_data_path+'/ml-10M100K/'):
         with zipfile.ZipFile(filepath, mode="a") as f:
-            print('Extracting dataset')
+            print('Extracting dataset...')
             f.extractall(origin_data_path)
         f.close()
 
@@ -51,4 +52,6 @@ if __name__ == '__main__':
 
     ## pretrain item embeddings by word2vec
     word2vec.pretrain_word2vec()
+
+    print('\nAll jobs done!')
 
