@@ -24,10 +24,10 @@ from gensim.models import Word2Vec
 
 def load_item_seq(data):
     item_num = data['item_id'].values.max()
-    print('item_num', item_num)
+    # print('item_num', item_num)
     corpus = []
     by_userid_group = data.groupby('user_id')['item_id']
-    for userid, group_frame in tqdm(by_userid_group, desc='Load item_seq'):
+    for userid, group_frame in tqdm(by_userid_group, desc='load item_seq'):
         item_seq = group_frame.values.tolist()
         seq_ = []
         for token in item_seq:
@@ -52,13 +52,12 @@ def pretrain_word2vec():
     user2item2cate2time = pd.read_csv(infile, sep='\t')
 
     corpus, item_num = load_item_seq(user2item2cate2time)
-    # print('item_num: ', item_num)
     
     w2v_model = Word2Vec(corpus, vector_size=PRETRAIN_VECTOR_SIZE, window=10, min_count=3, workers=4)
     w2v_model.save(outfile_path+"word2vec.model")
 
     fp = open(outfile_path+'item_emb_'+str(PRETRAIN_VECTOR_SIZE)+'.txt', 'w')
-    for i in tqdm(range(1, item_num+1), desc='Output Item Emb'):
+    for i in tqdm(range(1, item_num+1), desc='output Item Emb'):
         try:
             item_emb = w2v_model.wv[str(i)]
         except:

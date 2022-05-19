@@ -3,7 +3,12 @@
 """
 Pre-process data for Ada-Ranker.
 This is the code for processing original ML10M dataset for Ada-Ranker.
-The code includes download dataset, preprocess dataset, filter dataset, distribution-mixer sampling.
+The code includes:
+    (1) downloading the original ML10M dataset
+    (2) processing the original dataset (filtering users whose #interactions is lower than 10 and remapping all ids)
+    (3) sampling negative items by our proposed distritbuion-mixer sampling
+    (4) transferring DataFrame to pickle files
+    (5) pretraining item embeddings by word2vec algorithms.
 """
 
 import os
@@ -23,12 +28,13 @@ if __name__ == '__main__':
     ## download dataset:
         # download dataset from 'http://files.grouplens.org/datasets/movielens/ml-100k.zip'
         # You can also download ml-10m.zip from the browser or https://pan.baidu.com/s/10kyIQvfsU-HvKG-dlEiHag?pwd=hn99 and put it into `origin_data_path'
+
     filepath = origin_data_path + wget.filename_from_url(url)
 
     if not os.path.exists(filepath):
         print('\nThe original dataset does not exist. Downloading it from ', url)
-        # utils.download_dataset(url, filepath)
         wget.download(url, out=filepath)
+
     if not os.path.exists(origin_data_path+'/ml-10M100K/'):
         with zipfile.ZipFile(filepath, mode="a") as f:
             print('\n>> Extracting dataset...')

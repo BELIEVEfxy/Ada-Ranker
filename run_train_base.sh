@@ -3,10 +3,10 @@
 ## train base models in an end-to-end way
 
 # path of project: need to change!
-MY_DIR="/home/xinyan_fan/xinyan/AdaRanker-backup/Ada-Ranker/"
+MY_DIR="/home/xinyan_fan/SIGIR2022/Ada-Ranker/"
 
 # path of processed_data: need to change!
-ALL_DATA_ROOT="/home/xinyan_fan/xinyan/AdaRanker-backup/dataset/processed_data/"
+ALL_DATA_ROOT="/home/xinyan_fan/SIGIR2022/dataset/processed_data_test/"
 
 # overall config
 MODEL_NAME='NARM' # [MF, GRU4Rec, SASRec, NARM, NextItNet, SRGNN, SHAN]
