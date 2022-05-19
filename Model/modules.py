@@ -6,7 +6,7 @@ import torch.nn.init as init
 import copy
 import math
 import numpy as np
-import random
+
 
 def bpr_loss(pos_score, neg_score, gamma=1e-10):
     loss = -torch.log(gamma + torch.sigmoid(pos_score - neg_score))
@@ -34,98 +34,6 @@ class Dice(nn.Module):
 
         return self.alpha * (1 - score_p) * score + score_p * score
 
-class SequenceAttLayer(nn.Module):
-    """Attention Layer. Get the representation of each user in the batch.
-
-    Args:
-        queries (torch.Tensor): candidate ads, [B, H], H means embedding_size * feat_num
-        keys (torch.Tensor): user_hist, [B, T, H]
-        keys_length (torch.Tensor): mask, [B]
-
-    Returns:
-        torch.Tensor: result
-    """
-
-    def __init__(
-        self, mask_mat, input_size=64, output_size=64):
-        super(SequenceAttLayer, self).__init__()
-
-        self.mask_mat = mask_mat 
-        self.dense_1 = nn.Linear(input_size, output_size, bias=False) # - bias
-        self.dense_2 = nn.Linear(input_size, output_size, bias=False)
-
-        # for activation_unit
-        # self.activation = nn.ReLU()
-        self.dense = nn.Linear(input_size*4, 1)
-        # self.activation = Dice(100)
-
-    def activation_unit(self, queries, keys):
-        '''
-        to get activation weight: [2048, 5, 100]
-        '''
-        batch_size = queries.shape[0]
-        test_items_num = queries.shape[1]
-        seq_len = keys.shape[1]
-        embedding_size = queries.shape[-1]
-        queries_expand_emb = queries.unsqueeze(2).expand(batch_size, test_items_num, seq_len, embedding_size) # [2048, 5, 100, 64]
-        keys_expand_emb = keys.unsqueeze(1).expand(batch_size, test_items_num, seq_len, embedding_size) # [2048, 5, 100, 64]
-
-        concat_emb = torch.cat([queries_expand_emb, keys_expand_emb, queries_expand_emb-keys_expand_emb, queries_expand_emb*keys_expand_emb], dim=-1)
-        output = self.dense(concat_emb).squeeze(-1)
-        # output = self.activation(output)
-
-        return output
-
-    def forward(self, queries, keys, keys_length):
-        '''
-        queries: [2048, 5, 64]
-        keys: [2048, 100, 64]
-        '''
-        embedding_size = queries.shape[-1]  # H
-        
-        new_queries = self.dense_1(queries)
-        new_keys = self.dense_2(keys)
-
-        att_scores = torch.matmul(new_queries, new_keys.transpose(-1, -2)) # [2048, 5, 100]
-        # att_scores = self.activation_unit(new_queries, new_keys)
-
-        # get mask
-        mask = self.mask_mat.repeat(new_queries.size(0), 1) # [2048, 100]
-        saved_idx_thre = self.mask_mat.shape[-1] - keys_length
-        mask = (mask < saved_idx_thre.unsqueeze(1)) # [2048, 100]
-        mask = mask.unsqueeze(1).expand_as(att_scores)
-        mask = mask.reshape(new_queries.shape[0], -1, new_keys.shape[1]) # [2048, 5, 100]
-
-        mask_value = 0.0
-
-        att_scores = att_scores.masked_fill(mask=mask, value=torch.tensor(mask_value))
-        att_scores = att_scores / (embedding_size ** 0.5)
-        att_scores = nn.Softmax(dim=-1)(att_scores)
-        output = torch.matmul(att_scores, keys)  # [2048, 5, 64] # origin keys
-
-        return output
-
-class AttentionMergeLayer(nn.Module):
-    def __init__(self, input_size, dropout):
-        super(AttentionMergeLayer, self).__init__()
-        self.input_size = input_size
-        self.dense = nn.Linear(self.input_size, self.input_size)
-        self.emb_dropout = nn.Dropout(dropout)
-
-        self.h = nn.Parameter(torch.randn([self.input_size, 1]))
-        # self.act_fct = nn.ReLU()
-        self.softmax = nn.Softmax(dim=-1)
-
-    def forward(self, item_seq_emb):
-        #item_seq_emb, [2048, 100, 64]
-
-        item_seq_emb = self.dense(item_seq_emb) # [2048, 100, 64]
-        att_scores = torch.matmul(item_seq_emb, self.h).squeeze(-1) #[2048, 100, 1]
-        att_scores = self.softmax(att_scores)
-
-        att_emb = torch.matmul(att_scores.unsqueeze(-1).transpose(-1, -2), item_seq_emb).squeeze(1) #[2048, 64]
-        att_emb = self.emb_dropout(att_emb)
-        return att_emb #[2048, 64]
 
 # Transformer
 class MultiHeadAttention(nn.Module):
@@ -414,7 +322,7 @@ class ResidualBlock_b(nn.Module):
         inputs_pad = pad(inputs_pad)
         return inputs_pad
 
-
+# SRGNN
 class GNN(nn.Module):
     r"""Graph neural networks are well-suited for session-based recommendation,
     because it can automatically extract features of session graphs with considerations of rich node connections.
@@ -470,31 +378,16 @@ class GNN(nn.Module):
 
 # Ada-Ranker
 class NeuProcessEncoder(nn.Module):
-    def __init__(self, input_size=64, hidden_size=64, output_size=64, dropout_prob=0.4, device=None, encode_type='np', cate_num=0):
+    def __init__(self, input_size=64, hidden_size=64, output_size=64, dropout_prob=0.4, device=None):
         super(NeuProcessEncoder, self).__init__()
         self.device = device
-        self.cate_num = cate_num
-        self.encode_type = encode_type
-        # Encoder for item embeddingsif 
-        if encode_type=='np':
-            layers = [nn.Linear(input_size, hidden_size),
-                    torch.nn.Dropout(dropout_prob),
-                    nn.ReLU(inplace=True),
-                    nn.Linear(hidden_size, output_size)]
-            self.input_to_hidden = nn.Sequential(*layers)
-        elif encode_type=='anp':
-            self.input_to_hidden = MultiHeadAttention(
-            1, output_size, dropout_prob, dropout_prob, layer_norm_eps=1e-12
-        )
-        elif encode_type=='trmnp':
-            self.input_to_hidden = TransformerEncoder(
-                n_layers=2,
-                n_heads=2,
-                hidden_size=input_size,
-                inner_size=hidden_size*2,
-                hidden_dropout_prob=dropout_prob,
-                attn_dropout_prob=dropout_prob,
-            )
+
+        # Encoder for item embeddings
+        layers = [nn.Linear(input_size, hidden_size),
+                torch.nn.Dropout(dropout_prob),
+                nn.ReLU(inplace=True),
+                nn.Linear(hidden_size, output_size)]
+        self.input_to_hidden = nn.Sequential(*layers)
 
         # Encoder for latent vector z
         self.z1_dim = input_size # 64
@@ -504,16 +397,8 @@ class NeuProcessEncoder(nn.Module):
         self.hidden_to_mu = nn.Linear(self.z2_dim, self.z_dim)
         self.hidden_to_logsigma = nn.Linear(self.z2_dim, self.z_dim)
 
-        self.decode_layer_1 = nn.Linear(output_size, hidden_size)
-        self.decode_layer_2 = nn.Linear(hidden_size, input_size)
-
-        self.cate_decode_layer = nn.Linear(output_size, cate_num-1)
-
     def emb_encode(self, input_tensor):
-        if self.encode_type=='trmnp':
-            hidden = self.input_to_hidden(input_tensor)[-1]
-        else:
-            hidden = self.input_to_hidden(input_tensor)
+        hidden = self.input_to_hidden(input_tensor)
 
         return hidden
 
@@ -527,150 +412,26 @@ class NeuProcessEncoder(nn.Module):
         std = torch.exp(0.5 * log_sigma)
         eps = torch.randn_like(std)
         z = eps.mul(std).add_(mu)
+
         return z, mu, log_sigma
     
     def encoder(self, input_tensor):
         z_ = self.emb_encode(input_tensor)
         z = self.aggregate(z_)
-        self.z, mu, log_sigma = self.z_encode(z)
-        return self.z, mu, log_sigma
+        z, mu, log_sigma = self.z_encode(z)
+
+        return z, mu, log_sigma
 
     def forward(self, input_tensor):
-        self.z, _, _ = self.encoder(input_tensor)
-        return self.z
+        distribution_vec, _, _ = self.encoder(input_tensor)
 
-    def decode(self, z):
-        decode_z = torch.relu(self.decode_layer_1(z))
-        decode_z = self.decode_layer_2(decode_z)
-        return decode_z
-
-    def cate_deocde(self, z):
-        return self.cate_decode_layer(z) # [B, cate_num]
-
-    def loss_fct_cate(self, cate_seq):
-        # cate_seq [B, 20]
-        target_cate_distri = []
-        for i in range(1, self.cate_num):
-            b = (cate_seq==i).sum(-1)*1.0
-            target_cate_distri.append(b)
-
-        target_cate_distri = torch.stack(target_cate_distri).transpose(-1, -2)
-        target_cate_distri = target_cate_distri / (self.cate_num-1)
-        # target_cate_distri = nn.Softmax(-1)(target_cate_distri) # [B, cate_num]
-
-        recover_cate_distri = self.cate_deocde(self.z)
-
-        # loss = nn.MSELoss()(nn.Softmax(-1)(recover_cate_distri), target_cate_distri)
-        loss = -(F.log_softmax(recover_cate_distri, dim=-1)*target_cate_distri).mean()
-
-        return loss
-
-    def loss_fct_softmax(self, concat_items_emb, labels):
-        # KLD = -0.5 * torch.sum(1 + self.log_sigma - self.mu.pow(2) - self.log_sigma.exp())
-        decode_result = self.decode(self.z) # [B, D]
-        scores = torch.matmul(concat_items_emb, decode_result.unsqueeze(-1)).squeeze(-1)
-        # scores = self.loss_linear(concat_items_emb).squeeze(-1) # [B, 100]
-
-        loss = -(F.log_softmax(scores, dim=-1)*labels).mean()
-
-        return loss
-
-    def loss_fct(self, pos_test_items_emb): # test_items_emb [B, 20, D]
-        # distribution contrastive learning
-        new_indices = self._shuffle_list(pos_test_items_emb.size(0)).to(pos_test_items_emb.device)
-        neg_test_items_emb = pos_test_items_emb[new_indices, :, :] # [B, 20, D]
-
-        pos_posterior_z, pos_posterior_mu, pos_posterior_var = self.encoder(pos_test_items_emb)
-        pos_prior_z, pos_prior_mu, pos_prior_var = self.encoder(pos_test_items_emb[:, :int(pos_test_items_emb.size(1)/2), :])
-        neg_posterior_z, neg_posterior_mu, neg_posterior_var = self.encoder(neg_test_items_emb)
-
-        # kl_div = (torch.exp(posterior_var) + (posterior_mu-prior_mu) ** 2) / torch.exp(prior_var) - 1. + (prior_var - posterior_var)
-        pos_kl_div = self._cal_kl_div(pos_posterior_var, pos_posterior_mu, pos_prior_var, pos_prior_mu)
-        neg_kl_div = self._cal_kl_div(neg_posterior_var, neg_posterior_mu, pos_prior_var, pos_prior_mu)
-
-        # loss = bpr_loss(pos_kl_div, neg_kl_div)
-        loss = pos_kl_div.mean() # only consistency
-        
-        return loss
-
-    def _shuffle_list(self, B):
-        some_list = list(range(B))
-        randomized_list = copy.deepcopy(some_list)
-        while True:
-            random.shuffle(randomized_list)
-            for a, b in zip(some_list, randomized_list):
-                if a == b:
-                    break
-                else:
-                    return torch.tensor(randomized_list)
-
-    def _cal_kl_div(self, posterior_var, posterior_mu, prior_var, prior_mu):
-        kl_div = (torch.exp(posterior_var)+(posterior_mu-prior_mu).pow(2)) / torch.exp(prior_var) - 1.0 - (posterior_var-prior_var) # [B, 64]
-        kl_div = 0.5 * kl_div.sum(-1) # [B]
-        return kl_div
-
-    
-class VAE(nn.Module):
-    def __init__(self, input_size=64*20, hidden_size=64*10, latent_emb_size=64):
-        super(VAE, self).__init__()
-        self.input_size = input_size
-        # encoder
-        self.fc1 = nn.Linear(input_size, hidden_size)
-        self.fc21 = nn.Linear(hidden_size, latent_emb_size) # for mu
-        self.fc22 = nn.Linear(hidden_size, latent_emb_size) # for logvar
-        # decoder
-        self.fc3 = nn.Linear(latent_emb_size, hidden_size)
-        self.fc4 = nn.Linear(hidden_size, input_size)
-        # loss
-        # self.ce_loss = nn.CrossEntropyLoss()
-        self.mse_loss = nn.MSELoss()
-        # self.kl_loss = nn.KLDivLoss(size_average=True, reduce=True)
-
-    def encode(self, x):
-        h1 = F.relu(self.fc1(x))
-        return self.fc21(h1), self.fc22(h1)
-
-    def reparameterize(self, mu, logvar):
-        std = torch.exp(0.5*logvar)
-        eps = torch.randn_like(std)
-        return mu + eps*std
-
-    def decode(self, z):
-        h3 = F.relu(self.fc3(z))
-        return torch.sigmoid(self.fc4(h3))
-
-    def forward(self, x):
-        self.mu, self.logvar = self.encode(x.view(-1, self.input_size))
-        self.z = self.reparameterize(self.mu, self.logvar)
-        
-        return self.z #, self.decode(z)
-
-    def loss_fct(self, x):
-        self.decode_result = self.decode(self.z)
-        input = self.decode_result
-        target =  x.view(-1, self.input_size)
-        # BCE = F.binary_cross_entropy(input, target')
-        # CE = self.ce_loss(input, target)
-        # MSE = self.mse_loss(input, target)
-
-        # pair
-        # CE: cate distribution
-        # +lambda
-        
-        # see Appendix B from VAE paper:
-        # Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014
-        # https://arxiv.org/abs/1312.6114
-        # 0.5 * sum(1 + log(sigma^2) - mu^2 - sigma^2)
-        KLD = -0.5 * torch.sum(1 + self.logvar - self.mu.pow(2) - self.logvar.exp())
-
-        return MSE + KLD
+        return distribution_vec
 
 
-class AdaptLinear(nn.Module):
-    
+class AdaLinear(nn.Module):
     def __init__(self, in_features: int, out_features: int, bias: bool = True, device=None, dtype=None):
         factory_kwargs = {'device': device, 'dtype': dtype}
-        super(AdaptLinear, self).__init__()
+        super(AdaLinear, self).__init__()
         self.in_features = in_features
         self.out_features = out_features
         self.weight = nn.Parameter(torch.empty((out_features, in_features), **factory_kwargs))
@@ -696,42 +457,6 @@ class AdaptLinear(nn.Module):
         if self.bias is not None:
             output += self.bias_new
         return output
-
-    def adaptive_parameters(self, batch_size, gama, beta):
-        '''
-        gama: [batch_size, self.out_features, self.in_features]
-        beta: [batch_size, 1]
-        self.weight.data: [self.out_features, self.in_features]
-        '''
-        gama_w = gama.unsqueeze(1).expand([batch_size, self.out_features, self.in_features])
-        beta_w = beta.unsqueeze(1)
-        gama_b = gama.expand([batch_size, self.out_features])
-        beta_b = beta
-
-        self.weight_specific = self.weight * gama_w + beta_w # [batch_size, self.out_features, self.in_features]
-        self.weight_new = self.weight_specific * self.weight
-
-        if self.bias is not None:
-            self.bias_specific = self.bias * gama_b + beta_b
-            self.bias_new = self.bias_specific + self.bias
-            self.bias_new = self.bias_new.unsqueeze(1)
-    
-    def adaptive_parameters_ws(self, batch_size, gama, beta):
-        '''
-        gama: [batch_size, self.out_features, self.in_features]
-        beta: [batch_size, 1]
-        self.weight.data: [self.out_features, self.in_features]
-        '''
-        gama_w = gama.unsqueeze(1).expand([batch_size, self.out_features, self.in_features])
-        beta_w = beta.unsqueeze(1)
-        gama_b = gama.expand([batch_size, self.out_features])
-        beta_b = beta
-
-        self.weight_new = self.weight * gama_w + beta_w # [batch_size, self.out_features, self.in_features]
-
-        if self.bias is not None:
-            self.bias_new = self.bias * gama_b + beta_b
-            self.bias_new = self.bias_new.unsqueeze(1)
     
     def memory_parameters(self, mem_wei, mem_bias):
         self.weight_specific = mem_wei # [batch_size, self.out_features, self.in_features]
@@ -741,11 +466,6 @@ class AdaptLinear(nn.Module):
             self.bias_specific = mem_bias.squeeze(-1)
             self.bias_new = self.bias_specific + self.bias
             self.bias_new = self.bias_new.unsqueeze(1)
-    
-    def add_bias_only(self, bias_vec):
-        self.weight_new = self.weight
-        self.bias_new = bias_vec + self.bias
-        self.bias_new = self.bias_new.unsqueeze(1)
 
     def extra_repr(self):
         return 'in_features={}, out_features={}, bias={}'.format(
@@ -754,154 +474,31 @@ class AdaptLinear(nn.Module):
 
 
 class MemoryUnit(nn.Module):
-    # clusters_k is k keys
     def __init__(self, input_size, output_size, emb_size, clusters_k=10):
         super(MemoryUnit, self).__init__()
         self.clusters_k = clusters_k
         self.input_size = input_size
         self.output_size = output_size
-        self.array = nn.Parameter(init.xavier_uniform_(torch.FloatTensor(self.clusters_k, input_size*output_size)))
+        self.Q_heads = nn.Parameter(init.xavier_uniform_(torch.FloatTensor(self.clusters_k, input_size*output_size)))
         self.index = nn.Parameter(init.xavier_uniform_(torch.FloatTensor(self.clusters_k, emb_size)))
         self.softmax = nn.Softmax(dim=-1)
 
-    def forward(self, bias_emb):
+    def forward(self, distribution_vec):
         """
-        bias_emb: [batch_size, 1, emb_size]
+        distribution_vec: [B, 1, dim]
         """
-        att_scores = torch.matmul(bias_emb, self.index.transpose(-1, -2)) # [batch_size, clusters_k]
+        att_scores = torch.matmul(distribution_vec, self.index.transpose(-1, -2)) # [batch_size, clusters_k]
         att_scores = self.softmax(att_scores)
 
         # [batch_size, input_size, output_size]
-        para_new = torch.matmul(att_scores, self.array) # [batch_size, input_size*output_size]
+        para_new = torch.matmul(att_scores, self.Q_heads) # [batch_size, input_size*output_size]
         para_new = para_new.view(-1, self.output_size, self.input_size)
 
         return para_new
 
     def reg_loss(self, reg_weights=1e-2):
-        loss_1 = reg_weights * self.array.norm(2)
+        loss_1 = reg_weights * self.Q_heads.norm(2)
         loss_2 = reg_weights * self.index.norm(2)
 
         return loss_1 + loss_2
 
-    # def forward(self, task_embed):
-    #     res = torch.norm(task_embed-self.array, p=2, dim=1, keepdim=True)
-    #     res = torch.pow((res / self.temperature) + 1, (self.temperature + 1) / -2)
-    #     # 1*k
-    #     C = torch.transpose(res / res.sum(), 0, 1)
-    #     # 1*k, k*d, 1*d
-    #     value = torch.mm(C, self.array)
-    #     # simple add operation
-    #     new_task_embed = value + task_embed
-    #     # calculate target distribution
-    #     return C, new_task_embed
-
-class ModulateHidden(nn.Module):
-    def __init__(self, input_size, emb_size):
-        super(ModulateHidden, self).__init__()
-        self.input_size = input_size
-        self.emb_size = emb_size
-        self.gen_para_layer = nn.Linear(self.emb_size, self.input_size*self.input_size)
-
-    def gen_para(self, bias_emb):
-        """
-        bias_emb: [batch_size, emb_size]
-        """
-        para_new = self.gen_para_layer(bias_emb) # [batch_size, self.input_size*self.output_size]
-        self.para_new = para_new.view(-1, self.input_size, self.input_size)
-
-    def forward(self, input: torch.Tensor):
-        output = input.matmul(self.para_new.transpose(-1, -2))
-        
-        return output
-
-class AdapLinear_mmoe(nn.Module):
-    
-    def __init__(self, config, emb_size, in_features: int, out_features: int, bias: bool = True, expert_num=10, device=None, dtype=None):
-        
-        factory_kwargs = {'device': device, 'dtype': dtype}
-        super(AdapLinear_mmoe, self).__init__()
-        self.config = config
-        self.in_features = in_features
-        self.out_features = out_features
-        self.device = device
-
-        # self.weight = nn.Parameter(torch.empty((out_features, in_features), **factory_kwargs))
-        _weight = torch.randn((expert_num, self.out_features*self.in_features), requires_grad=True).to(self.device)
-        self.weight = nn.Parameter(_weight)
-
-        if bias:
-            _bias = torch.randn((expert_num, self.out_features), requires_grad=True).to(self.device)
-            self.bias = nn.Parameter(_bias)
-            # self.bias = nn.Parameter(torch.empty(out_features, **factory_kwargs))
-
-        # gate
-        self.gate_net = nn.Linear(emb_size, expert_num, bias=False)
-        self.softmax = nn.Softmax(-1)
-        
-        self.reset_parameters()
-
-    def reset_parameters(self):
-        nn.init.kaiming_uniform_(self.weight, a=math.sqrt(5))
-        if self.bias is not None:
-            fan_in, _ = nn.init._calculate_fan_in_and_fan_out(self.weight)
-            bound = 1 / math.sqrt(fan_in) if fan_in > 0 else 0
-            nn.init.uniform_(self.bias, -bound, bound)
-
-    def forward(self, input: torch.Tensor):
-        if input.dim() == 2 and self.bias is not None:
-            return torch.addmm(self.bias, input, self.weight_new.transpose(-1, -2))
-
-        output = input.matmul(self.weight_new.transpose(-1, -2))
-        if self.bias is not None:
-            output += self.bias_new
-        return output
-
-    def adaptive_parameters(self, domain_bias):
-        # domain_bias: [batch_size, emb_size]
-        if len(domain_bias.size()) == 3:
-            domain_bias = domain_bias.squeeze(1)
-        att_scores = self.gate_net(domain_bias) # [batch_size, expert_num]
-        att_scores = self.softmax(att_scores)
-        self.weight_new = torch.matmul(att_scores, self.weight) # [batch_size, input_size*output_size]
-        self.weight_new = self.weight_new.view(-1, self.out_features, self.in_features) # [batch_size, self.out_features, self.in_features]
-        if self.bias is not None:
-            self.bias_new = torch.matmul(att_scores, self.bias).unsqueeze(1) # [batch_size, input_size*output_size]
-            
-    def extra_repr(self):
-        return 'in_features={}, out_features={}, bias={}'.format(
-            self.in_features, self.out_features, self.bias is not None
-        )
-
-
-class MMoEUnit(nn.Module):
-    # clusters_k is k keys
-    def __init__(self, input_size, output_size, emb_size, expert_num=10):
-        super(MMoEUnit, self).__init__()
-        self.expert_num = expert_num
-        self.input_size = input_size
-        self.output_size = output_size
-
-        _weight = torch.randn((expert_num, self.output_size*self.input_size), requires_grad=True)
-        self.weight = nn.Parameter(_weight)
-
-        # gate
-        self.gate_net = nn.Linear(emb_size, expert_num, bias=False)
-        self.softmax = nn.Softmax(-1)
-        
-        self.reset_parameters()
-
-    def reset_parameters(self):
-        nn.init.kaiming_uniform_(self.weight, a=math.sqrt(5))
-
-    def forward(self, bias_emb):
-        """
-        bias_emb: [batch_size, 1, emb_size]
-        """
-        if len(bias_emb.size()) == 3:
-            bias_emb = bias_emb.squeeze(1)
-        att_scores = self.gate_net(bias_emb) # [batch_size, expert_num]
-        att_scores = self.softmax(att_scores)
-        para_new = torch.matmul(att_scores, self.weight) # [batch_size, input_size*output_size]
-        para_new = para_new.view(-1, self.output_size, self.input_size) # [batch_size, self.out_features, self.in_features]
-
-        return para_new

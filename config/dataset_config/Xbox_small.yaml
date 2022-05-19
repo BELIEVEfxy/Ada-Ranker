@@ -1,6 +1,0 @@
-# dataset
-user_num: 20001
-item_num: 3600
-cate_num: 13
-
-MAX_SEQ_LEN: 50

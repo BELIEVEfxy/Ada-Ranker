@@ -186,14 +186,14 @@ class Trainer(object):
                     interaction = {'user_id': inter_data[0].to(self.device, non_blocking=True),\
                                     'item_id': inter_data[1].to(self.device, non_blocking=True), \
                                     'item_seq': inter_data[2].to(self.device, non_blocking=True), \
-                                    'sampled_items': inter_data[3].to(self.device, non_blocking=True), \
+                                    'neg_items': inter_data[3].to(self.device, non_blocking=True), \
                                     'item_seq_len': inter_data[4].to(self.device, non_blocking=True), 
                                     }
                 else:
                     interaction = {'user_id': inter_data[0].to(self.device, non_blocking=True),\
                                 'item_id': inter_data[1].to(self.device, non_blocking=True), \
                                 'item_seq': inter_data[2].to(self.device, non_blocking=True), \
-                                'sampled_items': inter_data[3].to(self.device, non_blocking=True), \
+                                'neg_items': inter_data[3].to(self.device, non_blocking=True), \
                                 'item_seq_len': inter_data[4].to(self.device, non_blocking=True), \
                                 'uni_item_seq': inter_data[5].to(self.device, non_blocking=True), \
                                 'alias_item_seq': inter_data[6].to(self.device, non_blocking=True), \
@@ -272,14 +272,14 @@ class Trainer(object):
                 interaction = {'user_id': inter_data[0].to(self.device, non_blocking=True),\
                                 'item_id': inter_data[1].to(self.device, non_blocking=True), \
                                 'item_seq': inter_data[2].to(self.device, non_blocking=True), \
-                                'sampled_items': inter_data[3].to(self.device, non_blocking=True), \
+                                'neg_items': inter_data[3].to(self.device, non_blocking=True), \
                                 'item_seq_len': inter_data[4].to(self.device, non_blocking=True), 
                                 }
             else:
                 interaction = {'user_id': inter_data[0].to(self.device, non_blocking=True),\
                             'item_id': inter_data[1].to(self.device, non_blocking=True), \
                             'item_seq': inter_data[2].to(self.device, non_blocking=True), \
-                            'sampled_items': inter_data[3].to(self.device, non_blocking=True), \
+                            'neg_items': inter_data[3].to(self.device, non_blocking=True), \
                             'item_seq_len': inter_data[4].to(self.device, non_blocking=True), \
                             'uni_item_seq': inter_data[5].to(self.device, non_blocking=True), \
                             'alias_item_seq': inter_data[6].to(self.device, non_blocking=True), \

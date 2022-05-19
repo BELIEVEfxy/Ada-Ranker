@@ -1,6 +1,0 @@
-# dataset
-user_num: 8047 #算上padding_0
-item_num: 21
-cate_num: 14
-
-MAX_SEQ_LEN: 200

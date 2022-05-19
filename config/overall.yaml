@@ -1,31 +1,28 @@
-# path
-output_path: "/home/v-xinyanfan/2021/WSDM/result"
-dataset_path: "/home/v-xinyanfan/2021/WSDM/dataset"
-
 # general
 gpu_id: 0
 use_gpu: True
-seed: 2020
+seed: 2022
 state: INFO
 dataset_path: 'dataset/'
+saved: True
 checkpoint_dir: 'saved'
 show_progress: True
 
 # training settings
 epochs: 200
-batch_size: 4096
+batch_size: 2048
 learning_rate: 0.01
 
 learner: adam
 eval_step: 1
-stopping_step: 5
+stopping_step: 10
 clip_grad_norm: ~
 weight_decay: 0.0
+num_workers: 4
 
 # dataset
-neg_items_num: 4
+neg_items_num: 19
 
-# mode
-use_extractor: False
-add_bias_to: 'user_emb'
-stage: 'train-on-sub'
+# model
+embedding_size: 64
+

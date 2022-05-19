@@ -1,17 +1,14 @@
 # -*- coding: utf-8 -*-
 # @Time   : 2021/08/25
 
-import math
 import numpy as np
-import random
 import torch
 import torch.nn as nn
-import torch.nn.functional as fn
-from torch.nn.init import xavier_uniform_, xavier_normal_, normal_, uniform_
+from torch.nn.init import uniform_
 
 import Model.modules as modules
 from Model.recommender import AdaRecommender
-from Utils import utils
+
 
 class MF(AdaRecommender):
     
@@ -46,7 +43,7 @@ class GRU4Rec(AdaRecommender):
     def forward(self, interaction):
         item_seq_emb = self.item_embedding(interaction['item_seq']) # [2048, 100, 64]
         if self.train_type == 'Ada-Ranker':
-            item_seq_emb = self._add_domain_bias(item_seq_emb, self.domain_bias)
+            item_seq_emb = self._input_modulation(item_seq_emb, self.distribution_vec)
         item_seq_emb = self.emb_dropout(item_seq_emb)
         gru_output, _ = self.gru_layers(item_seq_emb)
         gru_output = self.dense(gru_output)
@@ -138,7 +135,7 @@ class SASRec(AdaRecommender):
 
         item_emb = self.item_embedding(item_seq)
         if self.train_type == 'Ada-Ranker':
-            item_emb = self._add_domain_bias(item_emb, self.domain_bias)
+            item_emb = self._input_modulation(item_emb, self.distribution_vec)
         input_emb = item_emb + position_embedding
         input_emb = self.LayerNorm(input_emb)
         input_emb = self.dropout(input_emb)
@@ -174,7 +171,7 @@ class NARM(AdaRecommender):
         item_seq_len = interaction['item_seq_len']
         item_seq_emb = self.item_embedding(item_seq)
         if self.train_type == 'Ada-Ranker':
-            item_seq_emb = self._add_domain_bias(item_seq_emb, self.domain_bias)
+            item_seq_emb = self._input_modulation(item_seq_emb, self.distribution_vec)
         item_seq_emb_dropout = self.emb_dropout(item_seq_emb)
         gru_out, _ = self.gru(item_seq_emb_dropout)
 
@@ -227,7 +224,7 @@ class NextItNet(AdaRecommender):
     def forward(self, interaction):
         item_seq_emb = self.item_embedding(interaction['item_seq'])  # [batch_size, seq_len, embed_size]
         if self.train_type == 'Ada-Ranker':
-            item_seq_emb = self._add_domain_bias(item_seq_emb, self.domain_bias)
+            item_seq_emb = self._input_modulation(item_seq_emb, self.distribution_vec)
         # Residual locks
         dilate_outputs = self.residual_blocks(item_seq_emb)
         hidden = dilate_outputs[:, -1, :].view(-1, self.residual_channels)  # [batch_size, embed_size]
@@ -311,7 +308,7 @@ class SHAN(AdaRecommender):
 
         item_seq_embedding = self.item_embedding(item_seq)
         if self.train_type == 'Ada-Ranker':
-            item_seq_embedding = self._add_domain_bias(item_seq_embedding, self.domain_bias)
+            item_seq_embedding = self._input_modulation(item_seq_embedding, self.distribution_vec)
         user_embedding = self.user_embedding(user)
 
         # get the mask
@@ -386,7 +383,7 @@ class SRGNN(AdaRecommender):
         # alias_inputs, A, items, mask = self._get_slice(item_seq)
         hidden = self.item_embedding(items) # [B, L, D]
         if self.train_type == 'Ada-Ranker':
-            hidden = self._add_domain_bias(hidden, self.domain_bias)
+            hidden = self._input_modulation(hidden, self.distribution_vec)
         hidden = self.gnn(A, hidden) # [B, L, D]
         alias_inputs = alias_inputs.view(-1, alias_inputs.size(1), 1).expand(-1, -1, self.embedding_size) # [B, L, D]
         seq_hidden = torch.gather(hidden, dim=1, index=alias_inputs) # [B, L, D]

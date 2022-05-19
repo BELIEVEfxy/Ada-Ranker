@@ -150,7 +150,7 @@ def download_with_bar(url, filepath):
     start = time.time()
     response = requests.get(url, stream=True)
     size = 0
-    chunk_size = 8096
+    chunk_size = 1024
     content_size = int(response.headers['content-length'])  # the size of the whole file
     try:
         if response.status_code == 200:
