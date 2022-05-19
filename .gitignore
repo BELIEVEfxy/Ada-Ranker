@@ -1,0 +1,11 @@
+dataset/*
+*/__pycache__/*
+*/*/__pycache__/*
+*/*/*/__pycache__/*
+*/*/*/*/__pycache__/*
+dataset
+*/image/*
+*nohup*
+*result*
+*.pyc*
+output/*

@@ -24,7 +24,7 @@ from Utils.init_config import Config
 import setproctitle
 
 if __name__ == '__main__':
-    setproctitle.setproctitle("fxy-train-ada_para")
+    setproctitle.setproctitle("AdaRanker-train")
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', '-m', type=str, default='MF', help='name of models')

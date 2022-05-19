@@ -3,20 +3,20 @@
 ## train Ada-Ranker in two-stage way
 
 # root
-MY_DIR="/home/v-xinyanfan/2021/KDD/xinyan_repo/AdaRanker_pipeline/"
+MY_DIR="/home/xinyan_fan/xinyan/AdaRanker-backup/Ada-Ranker/"
 
 # ALL_DATA_ROOT=$MY_DIR"dataset/"
-ALL_DATA_ROOT="/home/v-xinyanfan/2021/KDD/dataset/processed_data/"
+ALL_DATA_ROOT="/home/xinyan_fan/xinyan/AdaRanker-backup/dataset/processed_data/"
 
 # overall config
 MODEL_NAME='GRU4Rec' # [MF, GRU4Rec, SASRec, NARM, NextItNet, SRGNN, SHAN]
-DATASET_NAME="ML10M_small" # [ML10M, Xbox, Taobao]
+DATASET_NAME="ML10M" # [ML10M, Xbox, Taobao]
 train_type='Ada-Ranker' # ['Base', 'Ada-Ranker']
 
 
 SAMPLED_ITEMS_NUM=19
-TRAIN_MODE='multicate' # multicate is distribution-mixer sampling
-TEST_MODE='multicate' 
+TRAIN_MODE='distribution-mixer' # distribution-mixer sampling
+TEST_MODE='distribution-mixer' 
 TRAIN_DATA_PATH=$ALL_DATA_ROOT"/"$DATASET_NAME"/"$TRAIN_MODE"/"
 TEST_DATA_PATH=$ALL_DATA_ROOT"/"$DATASET_NAME"/"$TEST_MODE"/"
 
@@ -43,7 +43,7 @@ ALL_RESULTS_ROOT=$MY_DIR"result/Ada-Ranker/result_"$extract_bias_type"_"$add_bia
 
 # pre-train model's path
 FILE_PATH=$MY_DIR"result/Base/"$MODEL_NAME"_"$DATASET_NAME"_train/saved/"
-SAVED_MODEL="GRU4Rec-Apr-21-2022_05-09-20.pth"
+SAVED_MODEL="GRU4Rec-May-18-2022_19-54-20.pth"
 SAVED_MODEL_PATH=$FILE_PATH$SAVED_MODEL
 
 

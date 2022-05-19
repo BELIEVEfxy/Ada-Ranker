@@ -10,8 +10,7 @@ import torch
 import torch.nn as nn
 
 import logging
-import colorlog
-from colorama import init
+
 
 log_colors_config = {
     'DEBUG': 'cyan',
@@ -23,7 +22,6 @@ log_colors_config = {
 
 def init_logger(config):
 
-    init(autoreset=True)
     LOGROOT = config['output_path']
     #LOGROOT = './log/'
     dir_name = os.path.dirname(LOGROOT)
@@ -36,10 +34,7 @@ def init_logger(config):
     filefmt = "%(asctime)-15s %(levelname)s  %(message)s"
     filedatefmt = "%a %d %b %Y %H:%M:%S"
     fileformatter = logging.Formatter(filefmt, filedatefmt)
-
-    sfmt = "%(log_color)s%(asctime)-15s %(levelname)s  %(message)s"
-    sdatefmt = "%d %b %H:%M"
-    sformatter = colorlog.ColoredFormatter(sfmt, sdatefmt, log_colors=log_colors_config)
+    
 
     if config['state'] is None or config['state'].lower() == 'info':
         level = logging.INFO
@@ -59,7 +54,6 @@ def init_logger(config):
 
     sh = logging.StreamHandler()
     sh.setLevel(level)
-    sh.setFormatter(sformatter)
 
     logging.basicConfig(level=level, handlers=[fh, sh])
 

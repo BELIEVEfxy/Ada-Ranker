@@ -3,22 +3,22 @@
 ## train base models in an end-to-end way
 
 # root
-MY_DIR="/home/v-xinyanfan/2021/KDD/xinyan_repo/AdaRanker_pipeline/"
+MY_DIR="/home/xinyan_fan/xinyan/AdaRanker-backup/Ada-Ranker/"
 
 # ALL_DATA_ROOT=$MY_DIR"dataset/"
-ALL_DATA_ROOT="/home/v-xinyanfan/2021/KDD/dataset/processed_data/"
+ALL_DATA_ROOT="/home/xinyan_fan/xinyan/AdaRanker-backup/dataset/processed_data/"
 
 # overall config
 MODEL_NAME='GRU4Rec' # [MF, GRU4Rec, SASRec, NARM, NextItNet, SRGNN, SHAN]
-DATASET_NAME="ML10M_small" # [Taobao, Xbox, ML10M]
+DATASET_NAME="ML10M" # [Taobao, Xbox, ML10M]
 train_type='Base' # ['Base', 'Ada-Ranker']
 
 ALL_RESULTS_ROOT=$MY_DIR"result/Base/"$MODEL_NAME"_"$DATASET_NAME
 
 
 SAMPLED_ITEMS_NUM=19
-TRAIN_MODE='multicate' # multicate is distribution-mixer sampling
-TEST_MODE='multicate' 
+TRAIN_MODE='distribution-mixer' # distribution-mixer sampling
+TEST_MODE='distribution-mixer' 
 TRAIN_DATA_PATH=$ALL_DATA_ROOT"/"$DATASET_NAME"/"$TRAIN_MODE"/"
 TEST_DATA_PATH=$ALL_DATA_ROOT"/"$DATASET_NAME"/"$TEST_MODE"/"
 
