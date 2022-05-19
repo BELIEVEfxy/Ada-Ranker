@@ -25,6 +25,7 @@ def sample_while(candi_items, sampled_items_num, target_item, item_seq):
     return cur_sampled_items
 
 def distritbuion_mixer_sampling(data, cate2items):
+    print('\n>> Sampling negative candidates...')
     user2item2cate2time = pd.read_csv(processed_data_path+'user_item_cate_time.tsv', sep='\t')
     user2item2cate2time[CATE_ID] = user2item2cate2time[CATE_ID].apply(lambda x: utils.str2list(x))
 
@@ -35,7 +36,7 @@ def distritbuion_mixer_sampling(data, cate2items):
     stages = data[STAGE].values
     cates = data[CATE_ID].values
     cate_num = len(cate2items)
-    print('the number of cates', cate_num)
+    print('\nthe number of cates: ', cate_num)
 
     tmp_neg_file = processed_data_path + 'tmp_neg.tsv'
     f = open(tmp_neg_file, 'w')
