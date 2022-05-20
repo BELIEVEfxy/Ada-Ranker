@@ -27,7 +27,7 @@ freeze=1 # 1 for only finetune adaptation parameters, 0 for finetune all paramet
 
 # pre-train model's path
 FILE_PATH=$MY_DIR"result/Base/"$MODEL_NAME"_"$DATASET_NAME"_train/saved/"
-SAVED_MODEL="GRU4Rec-May-18-2022_19-54-20.pth" # the pretrained base model: need to change!
+SAVED_MODEL="GRU4Rec-May-19-2022_22-22-54.pth" # the pretrained base model: need to change!
 SAVED_MODEL_PATH=$FILE_PATH$SAVED_MODEL
 
 
