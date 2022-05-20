@@ -9,7 +9,7 @@ MY_DIR="/home/xinyan_fan/SIGIR2022/Ada-Ranker/"
 ALL_DATA_ROOT="/home/xinyan_fan/SIGIR2022/dataset/processed_data_test/"
 
 # overall config
-MODEL_NAME='NARM' # [MF, GRU4Rec, SASRec, NARM, NextItNet, SRGNN, SHAN]
+MODEL_NAME='GRU4Rec' # [MF, GRU4Rec, SASRec, NARM, NextItNet, SRGNN, SHAN]
 DATASET_NAME="ML10M" # [Taobao, Xbox, ML10M]
 train_type='Base' # ['Base', 'Ada-Ranker']
 
