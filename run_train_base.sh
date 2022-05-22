@@ -23,7 +23,7 @@ SAVED_MODEL_PATH=$ALL_RESULTS_ROOT"/"$MODEL_NAME"_"$DATASET_NAME"_train/saved/"$
 
 # train
 learning_rate=0.001
-batch_size=2048
+batch_size=1024
 stopping_step=10 # early stopping step
 # model
 dropout_prob=0.4
