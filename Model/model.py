@@ -4,11 +4,15 @@
 import numpy as np
 import torch
 import torch.nn as nn
+import torch.nn.functional as fn
 from torch.nn.init import uniform_
 
 import Model.modules as modules
 from Model.recommender import AdaRecommender
 
+"""
+The implementation of all models refers to https://github.com/RUCAIBox/RecBole.
+"""
 
 class MF(AdaRecommender):
     
@@ -41,9 +45,9 @@ class GRU4Rec(AdaRecommender):
         self.dense = nn.Linear(self.hidden_size, self.embedding_size)  
 
     def forward(self, interaction):
-        item_seq_emb = self.item_embedding(interaction['item_seq']) # [2048, 100, 64]
+        item_seq_emb = self.item_embedding(interaction['item_seq']) # [batch_size, seq_len, embedding_size]
         if self.train_type == 'Ada-Ranker':
-            item_seq_emb = self._input_modulation(item_seq_emb, self.distribution_vec)
+            item_seq_emb = self._input_modulation(item_seq_emb, self.distribution_vector)
         item_seq_emb = self.emb_dropout(item_seq_emb)
         gru_output, _ = self.gru_layers(item_seq_emb)
         gru_output = self.dense(gru_output)
@@ -52,15 +56,6 @@ class GRU4Rec(AdaRecommender):
 
         return seq_output
 
-    def forward_origin(self, interaction):
-        item_seq_emb = self.item_embedding(interaction['item_seq']) # [2048, 100, 64]
-        item_seq_emb = self.emb_dropout(item_seq_emb)
-        gru_output, _ = self.gru_layers(item_seq_emb)
-        gru_output = self.dense(gru_output)
-
-        seq_output = gru_output[:, -1]
-
-        return seq_output
 
 class SASRec(AdaRecommender):
     
@@ -108,25 +103,7 @@ class SASRec(AdaRecommender):
         extended_attention_mask = extended_attention_mask.to(dtype=next(self.parameters()).dtype)  # fp16 compatibility
         extended_attention_mask = (1.0 - extended_attention_mask) * -10000.0
         return extended_attention_mask
-
-    def forward_origin(self, interaction):
-        item_seq = interaction['item_seq']
-        position_ids = torch.arange(item_seq.size(1), dtype=torch.long, device=item_seq.device)
-        position_ids = position_ids.unsqueeze(0).expand_as(item_seq)
-        position_embedding = self.position_embedding(position_ids)
-
-        item_emb = self.item_embedding(item_seq)
-        input_emb = item_emb + position_embedding
-        input_emb = self.LayerNorm(input_emb)
-        input_emb = self.dropout(input_emb)
-
-        extended_attention_mask = self._get_attention_mask(item_seq)
-
-        trm_output = self.trm_encoder(input_emb, extended_attention_mask, output_all_encoded_layers=True)
-        output = trm_output[-1]
-        output = output[:, -1, :]
-        return output  # [B H]
-        
+     
     def forward(self, interaction):
         item_seq = interaction['item_seq']
         position_ids = torch.arange(item_seq.size(1), dtype=torch.long, device=item_seq.device)
@@ -135,7 +112,7 @@ class SASRec(AdaRecommender):
 
         item_emb = self.item_embedding(item_seq)
         if self.train_type == 'Ada-Ranker':
-            item_emb = self._input_modulation(item_emb, self.distribution_vec)
+            item_emb = self._input_modulation(item_emb, self.distribution_vector)
         input_emb = item_emb + position_embedding
         input_emb = self.LayerNorm(input_emb)
         input_emb = self.dropout(input_emb)
@@ -171,7 +148,7 @@ class NARM(AdaRecommender):
         item_seq_len = interaction['item_seq_len']
         item_seq_emb = self.item_embedding(item_seq)
         if self.train_type == 'Ada-Ranker':
-            item_seq_emb = self._input_modulation(item_seq_emb, self.distribution_vec)
+            item_seq_emb = self._input_modulation(item_seq_emb, self.distribution_vector)
         item_seq_emb_dropout = self.emb_dropout(item_seq_emb)
         gru_out, _ = self.gru(item_seq_emb_dropout)
 
@@ -224,7 +201,7 @@ class NextItNet(AdaRecommender):
     def forward(self, interaction):
         item_seq_emb = self.item_embedding(interaction['item_seq'])  # [batch_size, seq_len, embed_size]
         if self.train_type == 'Ada-Ranker':
-            item_seq_emb = self._input_modulation(item_seq_emb, self.distribution_vec)
+            item_seq_emb = self._input_modulation(item_seq_emb, self.distribution_vector)
         # Residual locks
         dilate_outputs = self.residual_blocks(item_seq_emb)
         hidden = dilate_outputs[:, -1, :].view(-1, self.residual_channels)  # [batch_size, embed_size]
@@ -308,7 +285,7 @@ class SHAN(AdaRecommender):
 
         item_seq_embedding = self.item_embedding(item_seq)
         if self.train_type == 'Ada-Ranker':
-            item_seq_embedding = self._input_modulation(item_seq_embedding, self.distribution_vec)
+            item_seq_embedding = self._input_modulation(item_seq_embedding, self.distribution_vector)
         user_embedding = self.user_embedding(user)
 
         # get the mask
@@ -383,7 +360,7 @@ class SRGNN(AdaRecommender):
         # alias_inputs, A, items, mask = self._get_slice(item_seq)
         hidden = self.item_embedding(items) # [B, L, D]
         if self.train_type == 'Ada-Ranker':
-            hidden = self._input_modulation(hidden, self.distribution_vec)
+            hidden = self._input_modulation(hidden, self.distribution_vector)
         hidden = self.gnn(A, hidden) # [B, L, D]
         alias_inputs = alias_inputs.view(-1, alias_inputs.size(1), 1).expand(-1, -1, self.embedding_size) # [B, L, D]
         seq_hidden = torch.gather(hidden, dim=1, index=alias_inputs) # [B, L, D]

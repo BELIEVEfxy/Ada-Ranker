@@ -1,5 +1,4 @@
-item_embedding_size: 32
-cate_embedding_size: 32
+embedding_size: 64
 hidden_size: 128
 num_layers: 1
 dropout_prob: 0.2

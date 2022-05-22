@@ -1,4 +1,4 @@
-# @Time   : 2021/8/30
+# @Time   : 2022/05/20
 import sys
 import os
 PROJECT_ROOT = os.path.abspath(os.path.join(os.getcwd()))
@@ -24,7 +24,7 @@ from Utils.init_config import Config
 import setproctitle
 
 if __name__ == '__main__':
-    setproctitle.setproctitle("AdaRanker-Inference")
+    setproctitle.setproctitle("AdaRanker_inference")
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', '-m', type=str, default='MF', help='name of models')

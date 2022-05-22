@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
-# @Time   : 2021/07/08
+# @Time   : 2022/05/20
 # @Author : Xinyan Fan
-
-# @Updata : 2021/07/12
 
 import os
 import sys
@@ -54,7 +52,7 @@ def load_item_profile(filepath):
             cates.append(cate2idx[i])
         return cates
 
-    item_profile = pd.read_csv(filepath, sep='::', names=['item_id', 'movie_title', 'genre'], header=None, engine='python')
+    item_profile = pd.read_csv(filepath, sep='::', names=['item_id', 'movie_title', 'genre'], header=None)
     # print('origin item_profile', item_profile)
     item_profile = item_profile[item_profile['genre'] != '(no genres listed)']
 
@@ -78,7 +76,7 @@ def load_item_profile(filepath):
     return item2cate
 
 def load_inter_file(item2cate, filepath):
-    inter_data = pd.read_csv(filepath, sep='::', names=['user_id', 'item_id', 'rating', 'timestamp'], header=None, engine='python')
+    inter_data = pd.read_csv(filepath, sep='::', names=['user_id', 'item_id', 'rating', 'timestamp'], header=None)
     # print('origin inter_data\n', inter_data)
     inter_data = pd.merge(inter_data, item2cate, how='inner', on=['item_id'])
     inter_data = inter_data[['user_id', 'item_id', 'cate_id', 'timestamp']]

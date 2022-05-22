@@ -1,5 +1,4 @@
-item_embedding_size: 32
-cate_embedding_size: 32
+embedding_size: 64
 kernel_size: 3
 block_num: 5
 dilations: [1,4]

@@ -1,4 +1,4 @@
-# @Time   : 2021/8/25
+# @Time   : 2022/05/20
 import sys
 import os
 PROJECT_ROOT = os.path.abspath(os.path.join(os.getcwd()))
@@ -24,7 +24,7 @@ from Utils.init_config import Config
 import setproctitle
 
 if __name__ == '__main__':
-    setproctitle.setproctitle("AdaRanker-train")
+    setproctitle.setproctitle("AdaRanker_train")
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', '-m', type=str, default='MF', help='name of models')
@@ -44,7 +44,7 @@ if __name__ == '__main__':
     
     output_path = config['output_path']
     utils.ensure_dir(output_path)
-    result_file = output_path+'/results_train.tsv'
+    result_file = output_path+'/results_xb.tsv'
 
     sep = '\t'
 

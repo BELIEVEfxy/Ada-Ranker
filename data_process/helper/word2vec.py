@@ -1,10 +1,6 @@
 # -*- coding: utf-8 -*-
-# @Time   : 2021/07/07
+# @Time   : 2022/05/20
 # @Author : Xinyan Fan
-
-# @Time : 2021/07/12
-# @Updata : 2021/08/28
-# @Updata : 2022/01/05
 """
 Use Word2Vec to pre-train item embedding
 """
@@ -43,8 +39,8 @@ def emb2str(embedding):
     return str_emb[:-1]
 
 def pretrain_word2vec():
-    print('\n>> Training word2vec...')
     # load data
+    print('\n>> Training word2vec...')
     infile = processed_data_path + '/user_item_cate_time.tsv'
     outfile_path = processed_data_path
     utils.ensure_dir(outfile_path)

@@ -172,7 +172,7 @@ def add_item_seq(data): # add item sequence
 
     user2itemseq = {user: [] for user in users}
     by_userid_group = data.groupby(USER_ID)[ITEM_ID]
-    for userid, group_frame in by_userid_group:
+    for userid, group_frame in tqdm(by_userid_group, desc='load item_seq'):
         seq = group_frame.values.tolist()
         user2itemseq[userid] = seq
 

@@ -1,3 +1,2 @@
-item_embedding_size: 32
-cate_embedding_size: 32
+embedding_size: 64
 step: 1

@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
-# @Time   : 2021/07/08
+# @Time   : 2022/05/20
 # @Author : Xinyan Fan
-
-# @Updata : 2021/07/12
 
 import os
 import sys
