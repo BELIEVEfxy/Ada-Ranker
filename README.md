@@ -11,7 +11,7 @@ Sequential Recommendation." In SIGIR 2022.
 ## Obtain the training sets (ML10M dataset)
 (1) You can download the processed ML10M data from this [link](https://pan.baidu.com/s/10kyIQvfsU-HvKG-dlEiHag?pwd=hn99), and put it in your dataset path.
 
-(2) You can also use the pipeline in `data_process/` to generate the processed ML10M dataset automatically. This pipeling includes:
+(2) You can also use the pipeline in `data_process/` to generate the processed ML10M dataset automatically. This pipeline includes:
 - downloading the original ML10M dataset
 - processing the original dataset (filtering users whose #interactions is lower than 10 and remapping all ids)
 - sampling negative items by our proposed distritbuion-mixer sampling
