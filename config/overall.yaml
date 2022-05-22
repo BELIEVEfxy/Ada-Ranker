@@ -1,21 +1,21 @@
 # general
-gpu_id: 1
+gpu_id: 0
 use_gpu: True
-seed: 2022
+seed: 2020
 state: INFO
 dataset_path: 'dataset/'
-saved: True
 checkpoint_dir: 'saved'
 show_progress: True
 
 # training settings
-epochs: 200
+epochs: 500
 batch_size: 2048
 learning_rate: 0.01
+saved: True
 
 learner: adam
 eval_step: 1
-stopping_step: 10
+stopping_step: 5
 clip_grad_norm: ~
 weight_decay: 0.0
 num_workers: 4
