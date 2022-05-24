@@ -1,9 +1,21 @@
 # Ada-Ranker
 
-This is our Pytorch implementation for our SIGIR 2022 long paper:
+This is our PyTorch implementation for our SIGIR 2022 long paper:
 
-Xinyan Fan, Jianxun Lian, Wayne Xin Zhao, Zheng Liu, Chaozhuo Li and Xing Xie (2022). "Ada-Ranker: A Data Distribution Adaptive Ranking Paradigm for
+> Xinyan Fan, Jianxun Lian, Wayne Xin Zhao, Zheng Liu, Chaozhuo Li and Xing Xie (2022). "Ada-Ranker: A Data Distribution Adaptive Ranking Paradigm for
 Sequential Recommendation." In SIGIR 2022. [PDF](https://arxiv.org/pdf/2205.10775.pdf)
+
+# Requirements
+Environments:
+```
+python==3.8
+pytorch==1.11.0
+cudatoolkit==10.1
+```
+Install environments by:
+```
+pip install -r requirements.txt
+```
 
 # Process Dataset 
 > data_process/
