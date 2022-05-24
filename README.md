@@ -17,13 +17,14 @@ Install environments by:
 pip install -r requirements.txt
 ```
 
-# Process Dataset 
+# Dataset 
+## Get our prepared dataset
+You can download the processed ML10M data from this [link](https://pan.baidu.com/s/10kyIQvfsU-HvKG-dlEiHag?pwd=hn99), and put it in your dataset path.
+
+## Process dataset
 > data_process/
 
-## Obtain the training sets (ML10M dataset)
-(1) You can download the processed ML10M data from this [link](https://pan.baidu.com/s/10kyIQvfsU-HvKG-dlEiHag?pwd=hn99), and put it in your dataset path.
-
-(2) You can also use the pipeline in `data_process/` to generate the processed ML10M dataset automatically. This pipeline includes:
+You can also use the pipeline in `data_process/` to generate the processed ML10M dataset automatically. This pipeline includes:
 - downloading the original ML10M dataset
 - processing the original dataset (filtering users whose #interactions is lower than 10 and remapping all ids)
 - sampling negative items by our proposed distritbuion-mixer sampling
@@ -35,15 +36,36 @@ Quick start by:
 sh run_dataprocess.sh
 ```
 
-## Main output files
+In general, there are two steps of preparing final data sets that Ada-Ranker uses.
 
-(1) `user_item_cate_time.tsv` is the user-item interaction file with item's category and action timestamp (after hashing). This file can be used to pre-train item embeddings by word2vec.
 
-(2) `item_emb_64.txt` is optional to initialize item embedding table from a pre-trained embedding table (by word2vec, see more detail in *Ada-Ranker/data_process/helper/word2vec.py*)
+### (1) Process the original dataset
 
-(3) `train.pkl`, `valid.pkl` and `test.pkl` are needed to train the model and their structure are the same. Each pkl file is transferred from the DataFrame in the tsv file. See more in *Ada-Ranker/data_process/helper/datasaver.py* to know how to get '.pkl' files.
+In this project, we provide an example of processing the original ML10M dataset. See more details in *data_process/ml10m_prepare.py* 
 
-For example, in `train.pkl` the data contains 6 fields which are processed previously: ['user_id', 'item_id', 'cate_id', 'item_seq', 'item_seq_len', 'neg_items'], and the DataFrame is like:
+For other datasets, you can use another script to get the input data, and its format should be like this:
+```
+user_id item_id cate_id timestamp
+1       122     [5, 15] 838985046
+139     122     [5, 15] 974302621
+149     122     [5, 15] 1112342322
+182     122     [5, 15] 943458784
+215     122     [5, 15] 1102493547
+217     122     [5, 15] 844429650
+```
+The input data should include 4 fields: 'user_id', 'item_id', 'cate_id', 'timestamp', and each element in `cate_id' is a list containing several categories of target item.
+
+### (2) Obtain the training sets
+You only need to provide a `.tsv` file containing the input data with the above 4 fields, and the programme will automatically process it to the final training sets that Ada-Ranker needs. See more details in *data_process/preprocess.py*. 
+
+The main output files include:
+
+-  `user_item_cate_time.tsv` is the user-item interaction file with item's category and action timestamp (after hashing). This file can be used to pre-train item embeddings by word2vec.
+
+-  `item_emb_64.txt` is optional to initialize item embedding table from a pre-trained embedding table (by word2vec, see more detail in *Ada-Ranker/data_process/helper/word2vec.py*)
+
+-  `train.pkl`, `valid.pkl` and `test.pkl` are needed to train the model and their structure are the same. Each pkl file is transferred from the DataFrame in the tsv file. See more in *Ada-Ranker/data_process/helper/datasaver.py* to know how to get '.pkl' files. 
+    - For example, in `train.pkl` the data contains 6 fields which are processed previously: ['user_id', 'item_id', 'cate_id', 'item_seq', 'item_seq_len', 'neg_items'], and the DataFrame is like:
 ```
 user_id	item_id	cate_id	item_seq	item_seq_len	neg_items
 2	36	[19]	[32, 33, 34, 35]	4	[13816, 30633, 29780, 39149, 20546, 46865, 13353, 45664, 49311, 14805, 28765, 7435, 6579, 33844, 43311, 30097, 42826, 23042, 1624]
