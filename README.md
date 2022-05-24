@@ -3,7 +3,7 @@
 This is our Pytorch implementation for our SIGIR 2022 long paper:
 
 Xinyan Fan, Jianxun Lian, Wayne Xin Zhao, Zheng Liu, Chaozhuo Li and Xing Xie (2022). "Ada-Ranker: A Data Distribution Adaptive Ranking Paradigm for
-Sequential Recommendation." In SIGIR 2022.
+Sequential Recommendation." In SIGIR 2022. [PDF](https://arxiv.org/pdf/2205.10775.pdf)
 
 # Process Dataset 
 > data_process/
