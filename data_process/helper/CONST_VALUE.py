@@ -9,6 +9,7 @@ ITEM_SEQ = 'item_seq'
 ITEM_SEQ_LEN = 'item_seq_len'
 STAGE = 'stage'
 NEG_ITEMS = 'neg_items'
+SEP = '\t'
 
 TARGET_ITEM_USED = 10
 MIN_USER_NUM = 10 # the number of interactions of a user must be higher than min_user_num
