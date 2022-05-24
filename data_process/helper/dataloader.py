@@ -82,3 +82,12 @@ def load_inter_file(item2cate, filepath):
     inter_data = inter_data[['user_id', 'item_id', 'cate_id', 'timestamp']]
 
     return inter_data
+
+def load_input_data(filepath, sep='\t'):
+    print('\n>> Loading input data...')
+    # origin_data's shape as ['user_id', 'item_id', 'cate_id', 'timestamp']
+
+    origin_data = pd.read_csv(filepath, sep=sep)
+    origin_data[CATE_ID] = origin_data[CATE_ID].apply(lambda x: utils.str2list(x))
+
+    return origin_data
