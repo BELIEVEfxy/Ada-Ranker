@@ -1,31 +1,65 @@
+absl-py==1.0.0
 brotlipy==0.7.0
+cachetools==5.1.0
 certifi==2021.10.8
-cffi @ file:///opt/conda/conda-bld/cffi_1642701102775/work
-charset-normalizer @ file:///tmp/build/80754af9/charset-normalizer_1630003229654/work
-cryptography @ file:///tmp/build/80754af9/cryptography_1652083738073/work
+cffi==1.15.0
+charset-normalizer==2.0.4
+cloudpickle==2.1.0
+colorama==0.4.4
+colorlog==4.7.2
+cryptography==37.0.1
+future==0.18.2
 gensim==4.2.0
-idna @ file:///tmp/build/80754af9/idna_1637925883363/work
+google-auth==2.6.6
+google-auth-oauthlib==0.4.6
+grpcio==1.46.3
+hyperopt==0.2.7
+idna==3.3
+importlib-metadata==4.11.4
+joblib==1.1.0
+lightgbm==3.3.2
+Markdown==3.3.7
 mkl-fft==1.3.1
-mkl-random @ file:///tmp/build/80754af9/mkl_random_1626186064646/work
+mkl-random==1.2.2
 mkl-service==2.4.0
-numpy @ file:///opt/conda/conda-bld/numpy_and_numpy_base_1652801679809/work
+networkx==2.8.2
+numpy==1.22.3
+oauthlib==3.2.0
 pandas==1.4.2
 Pillow==9.0.1
-pycparser @ file:///tmp/build/80754af9/pycparser_1636541352034/work
-pyOpenSSL @ file:///opt/conda/conda-bld/pyopenssl_1643788558760/work
-PySocks @ file:///tmp/build/80754af9/pysocks_1605305779399/work
+pip==21.2.4
+protobuf==3.20.1
+py4j==0.10.9.5
+pyasn1==0.4.8
+pyasn1-modules==0.2.8
+pycparser==2.21
+pyOpenSSL==22.0.0
+PySocks==1.7.1
 python-dateutil==2.8.2
 pytz==2022.1
 PyYAML==6.0
-requests @ file:///opt/conda/conda-bld/requests_1641824580448/work
-scipy==1.8.0
+requests==2.27.1
+requests-oauthlib==1.3.1
+rsa==4.8
+scikit-learn==1.1.1
+scipy==1.6.0
 setproctitle==1.2.3
-six @ file:///tmp/build/80754af9/six_1644875935023/work
+setuptools==61.2.0
+six==1.16.0
+sklearn==0.0
 smart-open==6.0.0
+tensorboard==2.9.0
+tensorboard-data-server==0.6.1
+tensorboard-plugin-wit==1.8.1
+threadpoolctl==3.1.0
 torch==1.11.0
 torchaudio==0.11.0
 torchvision==0.12.0
 tqdm==4.64.0
-typing_extensions @ file:///opt/conda/conda-bld/typing_extensions_1647553014482/work
-urllib3 @ file:///opt/conda/conda-bld/urllib3_1650639997961/work
+typing_extensions==4.1.1
+urllib3==1.26.9
+Werkzeug==2.1.2
 wget==3.2
+wheel==0.37.1
+xgboost==1.6.1
+zipp==3.8.0
