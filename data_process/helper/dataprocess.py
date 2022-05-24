@@ -34,10 +34,10 @@ def process_origin_data():
     Output files: ML10M.tsv
         (1) ML10M.tsv: user_id\titem_id\tcate_id\ttimestamp
                     user_id item_id cate_id timestamp
-            0       1       122     [5, 15] 838985046
-            1       139     122     [5, 15] 974302621
-            2       149     122     [5, 15] 1112342322
-            3       182     122     [5, 15] 943458784
+                    1       122     [5, 15] 838985046
+                    139     122     [5, 15] 974302621
+                    149     122     [5, 15] 1112342322
+                    182     122     [5, 15] 943458784
         (2) cate2idx (cate = Genres)
         (3) item2cate
     """
@@ -52,10 +52,8 @@ def process_origin_data():
         origin_data = dataloader.load_inter_file(item2cate, inter_file_path)
         origin_data.to_csv(origin_data_file, sep='\t', index=False)
     else:
-        origin_data = pd.read_csv(origin_data_file, sep='\t')
-        origin_data[CATE_ID] = origin_data[CATE_ID].apply(lambda x: utils.str2list(x))
+        print('The file exists!')
 
-    return origin_data
 
 def get_new_cate2items():
     user2item2cate2time = pd.read_csv(processed_data_path+'user_item_cate_time.tsv', sep='\t')
@@ -214,6 +212,4 @@ def add_item_seq(data): # add item sequence
     os.remove(tmp_file_name)
 
     return data
-        
-
         
